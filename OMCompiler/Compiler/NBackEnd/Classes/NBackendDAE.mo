@@ -1502,6 +1502,9 @@ protected
       case FEquation.TERMINATE() then {Statement.TERMINATE(eq.message, eq.source)};
       case FEquation.REINIT()    then {Statement.REINIT(eq.cref, eq.reinitExp, eq.source)};
       case FEquation.IF()        then lowerIfEquationStatements(eq);
+      case FEquation.FOR() algorithm
+        stmts := List.flatten(list(lowerWhenIfStatement(e) for e in eq.body));
+      then if listEmpty(stmts) then {} else {Statement.FOR(eq.iterator, eq.range, stmts, Statement.ForType.NORMAL(), eq.source, {})};
       else {};
     end match;
   end lowerWhenIfStatement;
@@ -1656,6 +1659,7 @@ protected
             case FEquation.TERMINATE() then ();
             case FEquation.REINIT()    then ();
             case FEquation.IF() guard not FEquation.contains(eq, isAssignment) then ();
+            case FEquation.FOR() guard not FEquation.contains(eq, isAssignment) then ();
 
             else algorithm
               Error.addMessage(Error.INTERNAL_ERROR,{getInstanceName() + " failed for branch equation:\n" + FEquation.toString(eq)});
