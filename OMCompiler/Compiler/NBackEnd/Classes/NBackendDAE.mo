@@ -1482,6 +1482,16 @@ protected
     end match;
   end lowerIfEquationStatements;
 
+  function isAssignment
+    input FEquation eq;
+    output Boolean b;
+  algorithm
+    b := match eq
+      case FEquation.EQUALITY() then true;
+      else false;
+    end match;
+  end isAssignment;
+
   function lowerWhenIfStatement
     input FEquation eq;
     output list<Statement> stmts;
@@ -1645,6 +1655,7 @@ protected
             case FEquation.ASSERT()    then ();
             case FEquation.TERMINATE() then ();
             case FEquation.REINIT()    then ();
+            case FEquation.IF() guard not FEquation.contains(eq, isAssignment) then ();
 
             else algorithm
               Error.addMessage(Error.INTERNAL_ERROR,{getInstanceName() + " failed for branch equation:\n" + FEquation.toString(eq)});

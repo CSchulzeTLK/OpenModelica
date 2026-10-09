@@ -57,6 +57,23 @@ package whenIfStatements
       m = 1;
     end when;
   end Mixed;
+
+  model Nested
+    Real x(start = 0, fixed = true);
+    discrete Integer k(start = 0, fixed = true);
+  equation
+    der(x) = 1;
+    when x > 0.5 then
+      k = 1;
+      if x > 0.2 then
+        if x > 0.7 then
+          pr(\"late\\n\");
+        else
+          pr(\"early\\n\");
+        end if;
+      end if;
+    end when;
+  end Nested;
 end whenIfStatements;
 "); getErrorString();
 
@@ -67,6 +84,8 @@ val(k, 0.35);
 val(x, 0.31);
 val(k, 0.8);
 val(m, 0.8);
+simulate(whenIfStatements.Nested); getErrorString();
+val(k, 1);
 // Result:
 // true
 // ""
@@ -92,5 +111,15 @@ val(m, 0.8);
 // 2.0
 // 0.3599999998699947
 // 4.0
+// 1.0
+// record SimulationResult
+//     resultFile = "whenIfStatements.Nested_res.mat",
+//     simulationOptions = "startTime = 0.0, stopTime = 1.0, numberOfIntervals = 500, tolerance = 1e-6, method = 'dassl', fileNamePrefix = 'whenIfStatements.Nested', options = '', outputFormat = 'mat', variableFilter = '.*', cflags = '', simflags = ''",
+//     messages = "LOG_SUCCESS       | info    | The initialization finished successfully without homotopy method.
+// LOG_STDOUT        | info    | early
+// LOG_SUCCESS       | info    | The simulation finished successfully.
+// "
+// end SimulationResult;
+// ""
 // 1.0
 // endResult
