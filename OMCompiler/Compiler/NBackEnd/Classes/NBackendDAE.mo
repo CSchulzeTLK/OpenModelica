@@ -1512,6 +1512,7 @@ protected
       case FEquation.TERMINATE() then {Statement.TERMINATE(eq.message, eq.source)};
       case FEquation.REINIT()    then {Statement.REINIT(eq.cref, eq.reinitExp, eq.source)};
       case FEquation.IF()        then lowerIfEquationStatements(eq);
+      case FEquation.FOR()       then {Statement.FOR(eq.iterator, eq.range, List.flatten(list(lowerWhenIfStatement(e) for e in eq.body)), Statement.ForType.NORMAL(), eq.source, {})};
       else {};
     end match;
   end lowerWhenIfStatement;
@@ -1665,6 +1666,9 @@ protected
             case FEquation.ASSERT()    then ();
             case FEquation.TERMINATE() then ();
             case FEquation.REINIT()    then ();
+            // nested if- and for-equations without assignments as well
+            case FEquation.IF()  guard(not FEquation.contains(eq, isEquality)) then ();
+            case FEquation.FOR() guard(not FEquation.contains(eq, isEquality)) then ();
 
             else algorithm
               Error.addMessage(Error.INTERNAL_ERROR,{getInstanceName() + " failed for branch equation:\n" + FEquation.toString(eq)});
@@ -1677,6 +1681,16 @@ protected
       then fail();
     end match;
   end lowerWhenBranchIf;
+
+  function isEquality
+    input FEquation eq;
+    output Boolean b;
+  algorithm
+    b := match eq
+      case FEquation.EQUALITY() then true;
+      else false;
+    end match;
+  end isEquality;
 
   public function lowerAlgorithm
     input Algorithm alg;

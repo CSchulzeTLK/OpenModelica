@@ -4,6 +4,7 @@ TESTFILES = \
 compositeEvent.mos \
 algorithmWhenNoOutputs.mos \
 whenIfStatements.mos \
+whenNestedIfStatements.mos \
 spatialDistributionTuple.mos \
 eventSystem.mos \
 hybridSys.mos \
