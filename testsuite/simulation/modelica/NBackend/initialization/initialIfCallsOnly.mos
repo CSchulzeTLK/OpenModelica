@@ -1,0 +1,83 @@
+// name: initialIfCallsOnly
+// keywords: NewBackend, initial equation, if, print, for
+// status: correct
+// cflags: --newBackend
+// teardown_command: rm -rf InitFor.Test* _InitFor.Test* output.log
+//
+// An if-equation in the initial equation section whose branch contains only
+// function calls (also in a for-equation) is lowered to algorithms inside an
+// if-equation; splitting that if-equation must not require a left-hand side.
+
+loadModel(Modelica); getErrorString();
+loadString("
+package InitFor
+  model Switch
+    parameter Integer n = 3;
+    parameter Integer mapping[n] = {1, 2, 3};
+    Integer sel;
+    Real x(start = 0, fixed = true);
+  initial equation
+    if sel < 0 then
+      Modelica.Utilities.Streams.print(\"the known signals are:\");
+      for i in 1:n loop
+        Modelica.Utilities.Streams.print(String(mapping[i]));
+      end for;
+      Modelica.Utilities.Streams.error(\"no mapping\");
+    end if;
+  equation
+    sel = if time < 0.5 then 1 else 2;
+    der(x) = sel;
+  end Switch;
+
+  model Test
+    Switch sw;
+  end Test;
+
+  model TestWhen \"same inside a when\"
+    parameter Integer n = 3;
+    parameter Integer mapping[n] = {1, 2, 3};
+    Integer sel;
+    Real x(start = 0, fixed = true);
+  equation
+    sel = if time < 0.5 then 1 else 2;
+    der(x) = sel;
+    when terminal() then
+      if sel < 0 then
+        for i in 1:n loop
+          Modelica.Utilities.Streams.print(String(mapping[i]));
+        end for;
+      end if;
+    end when;
+  end TestWhen;
+end InitFor;
+"); getErrorString();
+
+simulate(InitFor.Test, stopTime=1.0); getErrorString();
+val(sw.x, 1.0);
+simulate(InitFor.TestWhen, stopTime=1.0); getErrorString();
+val(x, 1.0);
+
+// Result:
+// true
+// ""
+// true
+// ""
+// record SimulationResult
+//     resultFile = "InitFor.Test_res.mat",
+//     simulationOptions = "startTime = 0.0, stopTime = 1.0, numberOfIntervals = 500, tolerance = 1e-6, method = 'dassl', fileNamePrefix = 'InitFor.Test', options = '', outputFormat = 'mat', variableFilter = '.*', cflags = '', simflags = ''",
+//     messages = "LOG_SUCCESS       | info    | The initialization finished successfully without homotopy method.
+// LOG_SUCCESS       | info    | The simulation finished successfully.
+// "
+// end SimulationResult;
+// ""
+// 1.5
+// record SimulationResult
+//     resultFile = "InitFor.TestWhen_res.mat",
+//     simulationOptions = "startTime = 0.0, stopTime = 1.0, numberOfIntervals = 500, tolerance = 1e-6, method = 'dassl', fileNamePrefix = 'InitFor.TestWhen', options = '', outputFormat = 'mat', variableFilter = '.*', cflags = '', simflags = ''",
+//     messages = "LOG_SUCCESS       | info    | The initialization finished successfully without homotopy method.
+// LOG_SUCCESS       | info    | The simulation finished successfully.
+// "
+// end SimulationResult;
+// ""
+// 1.5
+// endResult

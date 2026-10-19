@@ -3757,9 +3757,15 @@ public
          sorting them in the same way makes the split nice without algebraic loops."
         input Pointer<Equation> eqn1;
         input Pointer<Equation> eqn2;
-        output Boolean b = 0 < Expression.compare(
-          Util.getOption(Equation.getLHS(Pointer.access(eqn1))),
-          Util.getOption(Equation.getLHS(Pointer.access(eqn2))));
+        output Boolean b;
+      algorithm
+        b := match (Equation.getLHS(Pointer.access(eqn1)), Equation.getLHS(Pointer.access(eqn2)))
+          local
+            Expression lhs1, lhs2;
+          case (SOME(lhs1), SOME(lhs2)) then 0 < Expression.compare(lhs1, lhs2);
+          // equations without lhs (algorithms) keep their order
+          else false;
+        end match;
       end compareLHS;
     algorithm
       (discretes, continuous) := List.splitOnTrue(body.then_eqns, Equation.isDiscrete);

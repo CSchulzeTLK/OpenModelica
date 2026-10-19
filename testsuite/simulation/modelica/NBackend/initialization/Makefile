@@ -1,6 +1,7 @@
 TEST = ../../../../rtest -v
 
 TESTFILES = \
+initialIfCallsOnly.mos \
 attributeInitParameter.mos \
 experimental_initialSimplified.mos \
 discreteCallArgument.mos \
